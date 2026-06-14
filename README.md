@@ -128,13 +128,6 @@ Interact with SAGE and query incident histories directly from your terminal:
 python chatbot.py
 ```
 
-### 3. Validate the Setup
-To verify configurations, data files, and connections to Prometheus, Grafana, and the exporter:
-
-```bash
-python scripts/validate_e2e.py
-```
-
 ---
 
 ## Configuration Reference
