@@ -1,4 +1,4 @@
-# 🌿 SAGE: Service Availability Guarantee Engine
+#  SAGE: Service Availability Guarantee Engine
 
 **SAGE** is an autonomous, self-healing system for Kubernetes workloads designed to guarantee service availability and proactively prevent SLA/SLO breaches. By combining machine learning predictions, real-time Prometheus monitoring, episodic incident memory, and LLM-driven root-cause analysis (RCA), SAGE observes, diagnoses, and remediates system stress before it affects users.
 
@@ -6,53 +6,7 @@
 
 ## System Architecture
 
-```mermaid
-graph TD
-    %% Component Definitions
-    subgraph Kubernetes Cluster
-        K8sPods[Kubernetes Pods <br> web-app-* / flask-app-*]
-        KubeAPI[Kubernetes API Server]
-    end
-
-    subgraph Monitoring Stack
-        Prom[Prometheus Server]
-    end
-
-    subgraph SAGE Core
-        SAGEOrch[SAGE Orchestrator]
-        MLModels[ML Models <br> LightGBM Classifier & Regressor]
-        LangGraphRem[Remediation Graph <br> LangGraph Workflow]
-        EpisodicMem[Episodic Incident Memory <br> Vector Similarity Store]
-        LLMAgent[RCA Agent <br> ChatGroq Llama-3.1-8b]
-        EventBus[SAGE Event Bus]
-    end
-
-    subgraph Observability & Interface
-        Dashboard[Live Web Dashboard]
-        Chatbot[SAGE Interactive Chatbot]
-        Exporter[Prometheus Metrics Exporter]
-    end
-
-    %% Data Flows
-    K8sPods -->|Resource Metrics| Prom
-    Prom -->|Metric Queries| SAGEOrch
-    SAGEOrch -->|Features Snapshot| MLModels
-    MLModels -->|Breach Probability & TTB| SAGEOrch
-    
-    SAGEOrch -->|Trigger Event| EventBus
-    EventBus -->|RCA Event| LangGraphRem
-    
-    LangGraphRem -->|Cosine Similarity Lookup| EpisodicMem
-    LangGraphRem -->|Zero-Shot Diagnosis| LLMAgent
-    LangGraphRem -->|Apply Fix via kubectl| KubeAPI
-    KubeAPI -->|Scale / Resources| K8sPods
-    
-    EventBus -->|State Updates| Dashboard
-    EventBus -->|SAGE Metrics| Exporter
-    Exporter -->|Scraped Metrics| Prom
-    
-    Chatbot -->|Query Logs| EpisodicMem
-```
+![System Architecture](sys_arch.png)
 
 ---
 
