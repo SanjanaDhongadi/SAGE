@@ -1,0 +1,75 @@
+# kube-prometheus-stack — minimal patch for minikube / small clusters.
+# Apply ONLY this file (or merge with your existing -f values) in namespace `monitoring`.
+#
+# --- Install / upgrade (pick release name you already use, e.g. kube-prometheus-stack) ---
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm repo update
+#
+# helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#   -n monitoring --create-namespace \
+#   -f observability/kube-prometheus-stack-sage.values.yaml
+#
+# --- If prometheus pod stays Pending after changing storage, delete stuck PVCs then upgrade again ---
+# kubectl get pvc -n monitoring
+# kubectl delete pvc -n monitoring -l app.kubernetes.io/name=prometheus
+# kubectl delete pod -n monitoring -l app.kubernetes.io/name=prometheus
+#
+# --- Validate SAGE scrape (from any shell with port-forward to Prometheus) ---
+# kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
+# Open http://127.0.0.1:9090 → Graph → query: sage_pod_breach_probability
+#
+# --- Grafana (usually bundled) ---
+# kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
+# Default admin password is in secret unless you set grafana.adminPassword below.
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    retention: 2d
+    # Smaller footprint + explicit PVC to reduce Pending on minikube
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        metadata: {}
+        spec:
+          storageClassName: standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+    # SAGE process exporter on the minikube host (same as SAGE_PROMETHEUS_URL target for in-cluster Prom)
+    additionalScrapeConfigs:
+      - job_name: sage-exporter
+        honor_labels: true
+        scrape_interval: 10s
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+          - targets:
+              - host.minikube.internal:9108
+      - job_name: kube-state-metrics
+        scrape_interval: 15s
+        static_configs:
+          - targets:
+              - kube-prometheus-stack-kube-state-metrics.monitoring.svc.cluster.local:8080
+      - job_name: node-exporter
+        scrape_interval: 15s
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: monitoring;kube-prometheus-stack-prometheus-node-exporter;http-metrics
+
+grafana:
+  enabled: true
+  # Set a known password for demos; change for real clusters.
+  adminPassword: admin
+  defaultDashboardsEnabled: true

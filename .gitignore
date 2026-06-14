@@ -1,0 +1,42 @@
+# Python Caches & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables & Configs
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*
+
+# Local Runtime Data & Logs
+data/agent_events.jsonl
+data/episodic_memory.json
+data/remediation_log.xlsx
+data/sage_events.jsonl
+data/stress_log.xlsx
+data/ui_status.json
+*.log
+logs/
+
+# IDE / Editor Configurations
+.vscode/
+.idea/
+.project
+.settings/
+.claude/
+.gemini/
+.antigravityignore
+.DS_Store
+Thumbs.db

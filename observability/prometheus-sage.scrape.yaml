@@ -1,0 +1,31 @@
+# SAGE exporter scrape fragment (raw Prometheus server / additionalScrapeConfigs content).
+#
+# When Prometheus runs INSIDE the cluster (e.g. minikube) and SAGE runs on the HOST with
+# sage_metrics_exporter on 0.0.0.0:9108, use host reachability from pods:
+#   host.minikube.internal:9108   (minikube)
+#   host.docker.internal:9108   (Docker Desktop)
+#
+# 127.0.0.1:9108 only works if Prometheus runs on the same host network namespace as SAGE.
+
+scrape_configs:
+  - job_name: sage-exporter
+    honor_labels: true
+    scrape_interval: 10s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - host.minikube.internal:9108
+  - job_name: kube-state-metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - kube-prometheus-stack-kube-state-metrics.monitoring.svc.cluster.local:8080
+  - job_name: node-exporter
+    scrape_interval: 15s
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: monitoring;kube-prometheus-stack-prometheus-node-exporter;http-metrics

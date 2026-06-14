@@ -1,0 +1,335 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-1
+  template:
+    metadata:
+      labels:
+        app: flask-app-1
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-2
+  template:
+    metadata:
+      labels:
+        app: flask-app-2
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-3
+  template:
+    metadata:
+      labels:
+        app: flask-app-3
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-4
+  template:
+    metadata:
+      labels:
+        app: flask-app-4
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-5
+  template:
+    metadata:
+      labels:
+        app: flask-app-5
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-6
+  template:
+    metadata:
+      labels:
+        app: flask-app-6
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-7
+  template:
+    metadata:
+      labels:
+        app: flask-app-7
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-8
+  template:
+    metadata:
+      labels:
+        app: flask-app-8
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-9
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-9
+  template:
+    metadata:
+      labels:
+        app: flask-app-9
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-10
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-10
+  template:
+    metadata:
+      labels:
+        app: flask-app-10
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-11
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-11
+  template:
+    metadata:
+      labels:
+        app: flask-app-11
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app-12
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app-12
+  template:
+    metadata:
+      labels:
+        app: flask-app-12
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m03
+      containers:
+      - name: flask
+        image: python:3.11-slim
+        command: ["python", "-c", "from http.server import HTTPServer, BaseHTTPRequestHandler; HTTPServer(('', 5000), BaseHTTPRequestHandler).serve_forever()"]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"

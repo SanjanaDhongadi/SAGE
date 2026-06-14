@@ -1,0 +1,323 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-1
+  template:
+    metadata:
+      labels:
+        app: web-app-1
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-2
+  template:
+    metadata:
+      labels:
+        app: web-app-2
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-3
+  template:
+    metadata:
+      labels:
+        app: web-app-3
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-4
+  template:
+    metadata:
+      labels:
+        app: web-app-4
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-5
+  template:
+    metadata:
+      labels:
+        app: web-app-5
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-6
+  template:
+    metadata:
+      labels:
+        app: web-app-6
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-7
+  template:
+    metadata:
+      labels:
+        app: web-app-7
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-8
+  template:
+    metadata:
+      labels:
+        app: web-app-8
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-9
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-9
+  template:
+    metadata:
+      labels:
+        app: web-app-9
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-10
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-10
+  template:
+    metadata:
+      labels:
+        app: web-app-10
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-11
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-11
+  template:
+    metadata:
+      labels:
+        app: web-app-11
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-12
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-12
+  template:
+    metadata:
+      labels:
+        app: web-app-12
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: minikube-m02
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"

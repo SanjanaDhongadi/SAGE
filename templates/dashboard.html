@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGE Orchestrator | Self-Healing SLA Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg-base: #080b11;
+            --bg-surface: rgba(17, 24, 39, 0.7);
+            --bg-surface-solid: #111827;
+            --border-glow: rgba(99, 102, 241, 0.15);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            
+            --color-healthy: #10b981;
+            --color-warning: #f59e0b;
+            --color-critical: #ef4444;
+            --color-crashed: #b91c1c;
+            --color-recovering: #06b6d4;
+            
+            --glow-healthy: rgba(16, 185, 129, 0.2);
+            --glow-warning: rgba(245, 158, 11, 0.2);
+            --glow-critical: rgba(239, 68, 68, 0.2);
+            --glow-recovering: rgba(6, 182, 212, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: rgba(8, 11, 17, 0.8);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));
+            animation: pulse-glow 3s infinite alternate;
+        }
+
+        .logo-title h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--color-healthy);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--color-healthy);
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1rem;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .panel-title i {
+            color: #6366f1;
+        }
+
+        .stats-ribbon {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.02);
+        }
+
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, #ffffff, #d1d5db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .grid-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .grid-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+        }
+
+        .pod-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .pod-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .pod-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 10px 20px -10px rgba(0,0,0,0.5);
+        }
+
+        /* State colors and glows */
+        .pod-card.state-healthy::before { background-color: var(--color-healthy); }
+        .pod-card.state-healthy:hover { box-shadow: 0 0 20px var(--glow-healthy); border-color: rgba(16, 185, 129, 0.3); }
+
+        .pod-card.state-warning::before { background-color: var(--color-warning); }
+        .pod-card.state-warning:hover { box-shadow: 0 0 20px var(--glow-warning); border-color: rgba(245, 158, 11, 0.3); }
+        .pod-card.state-warning { animation: pulse-warning 2s infinite alternate; }
+
+        .pod-card.state-critical::before { background-color: var(--color-critical); }
+        .pod-card.state-critical:hover { box-shadow: 0 0 20px var(--glow-critical); border-color: rgba(239, 68, 68, 0.3); }
+        .pod-card.state-critical { animation: pulse-critical 1.5s infinite alternate; }
+
+        .pod-card.state-crashed::before { background-color: var(--color-crashed); }
+        .pod-card.state-crashed:hover { box-shadow: 0 0 20px rgba(185, 28, 28, 0.3); border-color: rgba(185, 28, 28, 0.3); }
+        .pod-card.state-crashed { animation: pulse-crashed 1s infinite alternate; }
+
+        .pod-card.state-recovering::before { background-color: var(--color-recovering); }
+        .pod-card.state-recovering:hover { box-shadow: 0 0 20px var(--glow-recovering); border-color: rgba(6, 182, 212, 0.3); }
+        .pod-card.state-recovering { animation: pulse-recovering 2s infinite alternate; }
+
+        .pod-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .pod-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .pod-badge {
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-healthy { background: rgba(16, 185, 129, 0.1); color: var(--color-healthy); }
+        .badge-warning { background: rgba(245, 158, 11, 0.1); color: var(--color-warning); }
+        .badge-critical { background: rgba(239, 68, 68, 0.1); color: var(--color-critical); }
+        .badge-crashed { background: rgba(185, 28, 28, 0.1); color: var(--color-crashed); }
+        .badge-recovering { background: rgba(6, 182, 212, 0.1); color: var(--color-recovering); }
+
+        .metric-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .metric-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .fill-cpu { background: linear-gradient(to right, #6366f1, #a855f7); }
+        .fill-mem { background: linear-gradient(to right, #06b6d4, #3b82f6); }
+
+        .pod-prob-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            margin-top: 0.25rem;
+        }
+
+        .prob-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .prob-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .cooldown-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(99, 102, 241, 0.15);
+            border-top-left-radius: 8px;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #818cf8;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            border-left: 1px solid rgba(99, 102, 241, 0.3);
+            border-top: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 40vh;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .timeline::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .timeline::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+        }
+
+        .timeline-item {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .timeline-item:hover {
+            border-color: rgba(99, 102, 241, 0.2);
+            background: rgba(99, 102, 241, 0.01);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 0.4rem;
+        }
+
+        .timeline-time {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .timeline-title {
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .timeline-body {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .timeline-meta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .meta-tag {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .meta-tag.action { color: #f43f5e; border-color: rgba(244, 63, 94, 0.2); background: rgba(244, 63, 94, 0.05); }
+        .meta-tag.outcome-success { color: var(--color-healthy); border-color: rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05); }
+        .meta-tag.outcome-partial { color: var(--color-warning); border-color: rgba(245, 158, 11, 0.2); background: rgba(245, 158, 11, 0.05); }
+
+        .rca-block {
+            background: rgba(99, 102, 241, 0.05);
+            border-left: 3px solid #6366f1;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            margin-top: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .rca-label {
+            font-weight: 700;
+            color: #818cf8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 0.15rem;
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0% { filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.3)); }
+            100% { filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.6)); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes pulse-warning {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.2); }
+            100% { box-shadow: 0 0 12px 2px rgba(245, 158, 11, 0.4); }
+        }
+
+        @keyframes pulse-critical {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); }
+            100% { box-shadow: 0 0 16px 4px rgba(239, 68, 68, 0.5); }
+        }
+
+        @keyframes pulse-crashed {
+            0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.3); }
+            100% { box-shadow: 0 0 18px 6px rgba(185, 28, 28, 0.6); }
+        }
+
+        @keyframes pulse-recovering {
+            0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.2); }
+            100% { box-shadow: 0 0 12px 2px rgba(6, 182, 212, 0.4); }
+        }
+
+        /* Empty timeline state */
+        .empty-timeline {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 150px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            gap: 0.5rem;
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .empty-timeline i {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-section">
+            <i class="fa-solid fa-brain logo-icon"></i>
+            <div class="logo-title">
+                <h1>SAGE Orchestrator</h1>
+                <p>Proactive Self-Healing & SLA Protection</p>
+            </div>
+        </div>
+        <div class="system-status">
+            <div class="status-dot"></div>
+            <span>SAGE AGENT: ACTIVE</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- Left Panel: Grid of all Pods -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <i class="fa-solid fa-cubes"></i>
+                    <span>Kubernetes Clusters Status</span>
+                </div>
+            </div>
+
+            <!-- Stats Ribbon -->
+            <div class="stats-ribbon">
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-total-pods">24</div>
+                    <div class="stat-label">Total Pods</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-warning-pods" style="color: var(--color-warning);">0</div>
+                    <div class="stat-label">Warnings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-critical-pods" style="color: var(--color-critical);">0</div>
+                    <div class="stat-label">Critical / Crashed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-success-rate" style="color: var(--color-healthy);">100%</div>
+                    <div class="stat-label">RCA Fix Success</div>
+                </div>
+            </div>
+
+            <div class="grid-container" id="pods-grid">
+                <!-- Pod cards dynamically generated -->
+            </div>
+        </div>
+
+        <!-- Right Panel: Agent Actions Feed & Stress Injection Logs -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            
+            <!-- Agent Remediation Timeline -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span>Remediation Agent Activity</span>
+                    </div>
+                </div>
+                <div class="timeline" id="remediation-timeline">
+                    <div class="empty-timeline">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>No self-healing events triggered yet.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stress Injection Timeline -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Stress Injector Agent Log</span>
+                    </div>
+                </div>
+                <div class="timeline" id="stress-timeline">
+                    <div class="empty-timeline">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>Waiting for stress injector cycles...</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Connect to SocketIO namespace
+        const socket = io();
+        
+        let podsMap = {};
+        let remediationCount = 0;
+        let successfulRemediations = 0;
+
+        function updateSummaryStats() {
+            let warning = 0;
+            let critical = 0;
+            let total = 0;
+            
+            for (let name in podsMap) {
+                total++;
+                let state = podsMap[name].state;
+                if (state === 'WARNING') warning++;
+                if (state === 'CRITICAL' || state === 'CRASHED') critical++;
+            }
+            
+            document.getElementById('stat-total-pods').innerText = total || 24;
+            document.getElementById('stat-warning-pods').innerText = warning;
+            document.getElementById('stat-critical-pods').innerText = critical;
+            
+            let successRate = 100;
+            if (remediationCount > 0) {
+                successRate = Math.round((successfulRemediations / remediationCount) * 100);
+            }
+            document.getElementById('stat-success-rate').innerText = successRate + '%';
+        }
+
+        function renderPodCard(podData) {
+            const grid = document.getElementById('pods-grid');
+            let card = document.getElementById(`pod-${podData.pod}`);
+            
+            if (!card) {
+                card = document.createElement('div');
+                card.id = `pod-${podData.pod}`;
+                card.className = 'pod-card';
+                grid.appendChild(card);
+            }
+            
+            // Update mapping
+            podsMap[podData.pod] = podData;
+            
+            const state = podData.state || 'HEALTHY';
+            const prob = podData.breach_prob !== undefined ? podData.breach_prob : 0.0;
+            const ttb = podData.time_to_breach !== undefined ? podData.time_to_breach : 9999;
+            const cpu = podData.cpu !== undefined ? podData.cpu : 0.0;
+            const mem = podData.mem !== undefined ? podData.mem : 0.0;
+            
+            let cooldownHTML = '';
+            if (podData.cooldown > 0) {
+                cooldownHTML = `<div class="cooldown-indicator"><i class="fa-solid fa-hourglass-half"></i> CD: ${Math.round(podData.cooldown)}s</div>`;
+            }
+
+            card.className = `pod-card state-${state.toLowerCase()}`;
+            card.innerHTML = `
+                <div class="pod-header">
+                    <span class="pod-name" title="${podData.pod}">${podData.pod}</span>
+                    <span class="pod-badge badge-${state.toLowerCase()}">${state}</span>
+                </div>
+                
+                <div class="metric-row">
+                    <div class="metric-label">
+                        <span>CPU</span>
+                        <span>${cpu.toFixed(1)}%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill fill-cpu" style="width: ${Math.min(cpu, 100)}%"></div>
+                    </div>
+                </div>
+                
+                <div class="metric-row">
+                    <div class="metric-label">
+                        <span>Memory</span>
+                        <span>${mem.toFixed(1)}%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill fill-mem" style="width: ${Math.min(mem, 100)}%"></div>
+                    </div>
+                </div>
+                
+                <div class="pod-prob-section">
+                    <span class="prob-label">Breach Prob</span>
+                    <span class="prob-val" style="color: ${prob > 0.08 ? 'var(--color-critical)' : prob > 0.05 ? 'var(--color-warning)' : 'var(--color-healthy)'}">${prob.toFixed(3)}</span>
+                </div>
+                
+                <div style="font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                    <span>TTB:</span>
+                    <span style="font-family: 'JetBrains Mono', monospace;">${ttb < 9000 ? Math.round(ttb) + 's' : '—'}</span>
+                </div>
+                
+                ${cooldownHTML}
+            `;
+            
+            updateSummaryStats();
+        }
+
+        function addRemediationItem(evt) {
+            const container = document.getElementById('remediation-timeline');
+            
+            // Remove empty placeholder
+            const placeholder = container.querySelector('.empty-timeline');
+            if (placeholder) placeholder.remove();
+            
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            
+            const data = evt.data;
+            let bodyHTML = '';
+            let metaHTML = '';
+            
+            if (evt.type === 'remediation_started') {
+                bodyHTML = `Remediation flow started for <strong style="color: var(--color-warning);">${data.pod}</strong> triggered by <strong>${data.state}</strong> state (Breach Prob: <strong>${data.breach_prob.toFixed(3)}</strong>). Checking Episodic Memory...`;
+            } else if (evt.type === 'rca_complete') {
+                bodyHTML = `
+                    <div class="timeline-title" style="color: #6366f1;">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Root Cause Diagnostics Complete
+                    </div>
+                    <div class="rca-block">
+                        <div class="rca-label">RCA Diagnostic</div>
+                        <div>${data.root_cause}</div>
+                        <div class="rca-label" style="margin-top: 0.5rem;">Prescribed Action</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #f43f5e;">${data.action.toUpperCase()}</div>
+                    </div>
+                    <div style="margin-top: 0.5rem; font-style: italic; font-size: 0.8rem; color: var(--text-muted);">
+                        <strong>Reasoning:</strong> ${data.reasoning}
+                    </div>
+                `;
+            } else if (evt.type === 'action_executed') {
+                bodyHTML = `Executed auto-remediation fix <span class="meta-tag action">${data.action.toUpperCase()}</span> on target workload.`;
+            } else if (evt.type === 'remediation_complete') {
+                remediationCount++;
+                const isSuccess = data.outcome === 'SUCCESS';
+                if (isSuccess) successfulRemediations++;
+                
+                const outcomeClass = isSuccess ? 'outcome-success' : 'outcome-partial';
+                
+                bodyHTML = `
+                    <div class="timeline-title" style="color: ${isSuccess ? 'var(--color-healthy)' : 'var(--color-warning)'}">
+                        <i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> Self-Healing Complete
+                    </div>
+                    <div>Remediation cycle resolved. Breach probability reduced from <strong>${data.prob_before.toFixed(3)}</strong> to <strong>${data.prob_after.toFixed(3)}</strong>.</div>
+                `;
+                
+                metaHTML = `
+                    <div class="timeline-meta">
+                        <span class="meta-tag action">${data.action.toUpperCase()}</span>
+                        <span class="meta-tag ${outcomeClass}">Outcome: ${data.outcome}</span>
+                        <span class="meta-tag"><i class="fa-solid fa-stopwatch"></i> Recovery: ${Math.round(data.recovery_time)}s</span>
+                    </div>
+                `;
+            }
+            
+            item.innerHTML = `
+                <div class="timeline-header">
+                    <span class="timeline-time">${evt.timestamp}</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; color: #818cf8;">${data.pod}</span>
+                </div>
+                <div class="timeline-body">${bodyHTML}</div>
+                ${metaHTML}
+            `;
+            
+            container.insertBefore(item, container.firstChild);
+            updateSummaryStats();
+        }
+
+        function addStressItem(evt) {
+            const container = document.getElementById('stress-timeline');
+            const placeholder = container.querySelector('.empty-timeline');
+            if (placeholder) placeholder.remove();
+            
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            
+            const data = evt.data;
+            item.innerHTML = `
+                <div class="timeline-header">
+                    <span class="timeline-time">${evt.timestamp}</span>
+                    <span style="color: var(--color-critical); font-family: 'JetBrains Mono', monospace; font-weight: 700;">STRESSOR</span>
+                </div>
+                <div class="timeline-body">
+                    Injected <strong style="color: var(--color-critical);">${data.stress_type.toUpperCase()}</strong> stress into target pod <strong style="color: #6366f1;">${data.pod}</strong> for <strong>${data.duration}s</strong>.
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+                        <strong>LLM Injector Plan:</strong> ${data.reasoning}
+                    </div>
+                </div>
+            `;
+            
+            container.insertBefore(item, container.firstChild);
+        }
+
+        // Initialize state on connection
+        socket.on('init_state', function(state) {
+            console.log("Initialized SAGE State", state);
+            // Render all pods
+            if (state.pods && state.pods.length > 0) {
+                state.pods.forEach(pod => renderPodCard(pod));
+            } else {
+                // Pre-generate standard 24 pods
+                const defaultPods = [];
+                for (let i = 1; i <= 12; i++) {
+                    defaultPods.push({ pod: `web-app-${i}`, state: 'HEALTHY', breach_prob: 0.0, time_to_breach: 9999, cpu: 0, mem: 0, cooldown: 0 });
+                    defaultPods.push({ pod: `flask-app-${i}`, state: 'HEALTHY', breach_prob: 0.0, time_to_breach: 9999, cpu: 0, mem: 0, cooldown: 0 });
+                }
+                defaultPods.forEach(pod => renderPodCard(pod));
+            }
+            
+            // Render event history
+            if (state.history && state.history.length > 0) {
+                state.history.forEach(evt => {
+                    if (evt.type.startsWith('remediation') || evt.type === 'rca_complete' || evt.type === 'action_executed') {
+                        addRemediationItem(evt);
+                    } else if (evt.type === 'stress_injected') {
+                        addStressItem(evt);
+                    }
+                });
+            }
+        });
+
+        // Handle live updates
+        socket.on('pod_update', function(podData) {
+            renderPodCard(podData);
+        });
+
+        socket.on('system_event', function(evt) {
+            if (evt.type.startsWith('remediation') || evt.type === 'rca_complete' || evt.type === 'action_executed') {
+                addRemediationItem(evt);
+            } else if (evt.type === 'stress_injected') {
+                addStressItem(evt);
+            }
+        });
+    </script>
+</body>
+</html>

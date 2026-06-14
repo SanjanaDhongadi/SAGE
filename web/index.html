@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAGE Operations Dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar card">
+        <h2>SAGE Prompts</h2>
+        <p class="subtle">Click to auto-fill chat input</p>
+        <div id="prompt-list" class="prompt-list"></div>
+        <div class="apikey">
+          <label for="groq-key">Groq API Key (optional)</label>
+          <input id="groq-key" type="password" placeholder="gsk_..." />
+          <small>Used only in browser to generate AI replies.</small>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="chat card">
+          <div class="chat-header">
+            <h1>SAGE Agent Chat</h1>
+            <span id="last-refresh" class="badge">Waiting for data</span>
+          </div>
+          <div id="chat-log" class="chat-log"></div>
+          <form id="chat-form" class="chat-form">
+            <input id="chat-input" type="text" placeholder="Ask about incidents, RCA, remediation..." />
+            <button type="submit">Send</button>
+          </form>
+        </section>
+
+        <section class="monitor-grid">
+          <div class="card">
+            <h3>Monitoring Summary</h3>
+            <div id="summary-cards" class="summary-cards"></div>
+          </div>
+          <div class="card">
+            <h3>Current Issue Status</h3>
+            <div id="issue-status"></div>
+          </div>
+        </section>
+        <section class="card">
+          <h3>Terminal Panel</h3>
+          <div id="terminal-panel" class="log-panel"></div>
+        </section>
+      </main>
+    </div>
+    <script src="./main.js"></script>
+  </body>
+</html>
